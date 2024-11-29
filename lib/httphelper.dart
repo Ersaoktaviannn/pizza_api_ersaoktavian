@@ -4,8 +4,8 @@ import 'package:http/http.dart' as http;
 import 'pizza.dart';
 
 class HttpHelper {
-  final String authority = 'kkqe9.wiremockapi.cloud'; // URL Mock API yang benar
-  final String path = '/pizzalist'; // Pastikan path sesuai dengan endpoint API Anda
+  final String authority = 'kkqe9.wiremockapi.io'; // Ganti dengan URL Mock API Anda
+  final String path = 'pizzalist';
 
   Future<List<Pizza>> getPizzaList() async {
     final Uri url = Uri.https(authority, path);
@@ -17,8 +17,20 @@ class HttpHelper {
           jsonResponse.map<Pizza>((i) => Pizza.fromJson(i)).toList();
       return pizzas;
     } else {
-      print('Error: ${result.statusCode}, ${result.reasonPhrase}');
       return [];
     }
+  }
+
+  Future<String> postPizza(Pizza pizza) async {
+    const postPath = '/pizza';
+    String post = json.encode(pizza.toJson());
+    Uri url = Uri.https(authority, postPath);
+    http.Response r = await http.post(
+      url,
+      body: post,
+      headers: {'Content-Type': 'application/json'},
+    );
+    final Map<String, dynamic> response = json.decode(r.body);
+    return response['message'] ?? 'Unknown error'; // Ambil pesan dari respons.
   }
 }

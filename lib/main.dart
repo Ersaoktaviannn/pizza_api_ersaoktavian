@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'httphelper.dart';
 import 'pizza.dart';
+import 'pizza_detail.dart';
 
 void main() {
   runApp(const MyApp());
@@ -39,15 +40,16 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
+      appBar: AppBar(
+        title: Text(widget.title),
+        backgroundColor: Colors.blue,
+      ),
       body: FutureBuilder<List<Pizza>>(
         future: callPizzas(),
         builder: (BuildContext context, AsyncSnapshot<List<Pizza>> snapshot) {
           if (snapshot.hasError) {
-            print('Error: ${snapshot.error}');
             return const Center(child: Text('Something went wrong'));
           }
-
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -58,14 +60,25 @@ class _MyHomePageState extends State<MyHomePage> {
               Pizza pizza = snapshot.data![position];
               return ListTile(
                 title: Text(
-                  pizza.name,
+                  pizza.pizzaName ?? '',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(
-                  '${pizza.description} - € ${pizza.price.toStringAsFixed(2)}',
+                  '${pizza.description ?? ''} - € ${pizza.price?.toStringAsFixed(2) ?? ''}',
                 ),
               );
             },
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.add),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const PizzaDetailScreen(),
+            ),
           );
         },
       ),

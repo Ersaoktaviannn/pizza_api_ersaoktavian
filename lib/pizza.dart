@@ -1,15 +1,29 @@
 class Pizza {
-  final String name;
-  final String description;
-  final double price;
+  int? id;
+  String? pizzaName;
+  String? description;
+  double? price;
+  String? imageUrl;
 
-  Pizza({required this.name, required this.description, required this.price});
+  Pizza({this.id, this.pizzaName, this.description, this.price, this.imageUrl});
 
   factory Pizza.fromJson(Map<String, dynamic> json) {
     return Pizza(
-      name: json['pizzaName'], // Sesuaikan dengan key JSON dari API
+      id: json['id'],
+      pizzaName: json['pizzaName'],
       description: json['description'],
-      price: json['price'].toDouble(),
+      price: json['price'],
+      imageUrl: json['imageUrl'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'pizzaName': pizzaName,
+      'description': description,
+      'price': price,
+      'imageUrl': imageUrl,
+    };
   }
 }

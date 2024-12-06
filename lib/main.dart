@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'httphelper.dart';
 import 'pizza.dart';
+import 'httphelper.dart';
 import 'pizza_detail.dart';
 
 void main() {
@@ -13,18 +13,19 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Pizza API Demo',
+      title: 'JSON',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'JSON ERSA'),
+      home: const MyHomePage(title: 'JSON Ersa'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
+
   final String title;
 
   @override
@@ -34,50 +35,92 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   Future<List<Pizza>> callPizzas() async {
     HttpHelper helper = HttpHelper();
-    return await helper.getPizzaList();
+    List<Pizza> pizzas = await helper.getPizzaList();
+    return pizzas;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
-        backgroundColor: Colors.blue,
+        title: const Text('JSON ERSA'),
       ),
-      body: FutureBuilder<List<Pizza>>(
+      body: FutureBuilder(
         future: callPizzas(),
         builder: (BuildContext context, AsyncSnapshot<List<Pizza>> snapshot) {
           if (snapshot.hasError) {
-            return const Center(child: Text('Something went wrong'));
+            return const Text('Something went wrong');
           }
+
           if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
+            return const CircularProgressIndicator();
           }
 
           return ListView.builder(
-            itemCount: snapshot.data!.length,
+            itemCount: (snapshot.data == null) ? 0 : snapshot.data!.length,
             itemBuilder: (BuildContext context, int position) {
-              Pizza pizza = snapshot.data![position];
-              return ListTile(
-                title: Text(
-                  pizza.pizzaName ?? '',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+              return Dismissible(
+                key: Key(snapshot.data![position].id.toString()),
+                onDismissed: (direction) {
+                  HttpHelper helper = HttpHelper();
+
+                  // Remove the pizza from the list
+                  helper.deletePizza(snapshot.data![position].id!);
+
+                  // Optional: Update the state to reflect the removal
+                  setState(() {
+                    snapshot.data!.removeAt(position);
+                  });
+                },
+                background: Container(
+                  color: Colors.red,
+                  child: const Icon(
+                    Icons.delete,
+                    color: Colors.white,
+                  ),
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 20),
                 ),
-                subtitle: Text(
-                  '${pizza.description ?? ''} - € ${pizza.price?.toStringAsFixed(2) ?? ''}',
+                child: ListTile(
+                  title: Text(snapshot.data![position].pizzaName),
+                  subtitle: Text(
+                    '${snapshot.data![position].description} - €${snapshot.data![position].price.toString()}',
+                  ),
+                  onTap: () {
+                    // Navigating to the PizzaDetailScreen and passing the selected pizza and isNew = false
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PizzaDetailScreen(
+                          pizza: snapshot.data![position],
+                          isNew: false,
+                        ),
+                      ),
+                    );
+                  },
                 ),
               );
             },
           );
         },
       ),
+      // Menambahkan FloatingActionButton
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
         onPressed: () {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const PizzaDetailScreen(),
+              builder: (context) => PizzaDetailScreen(
+                pizza: Pizza(
+                  id: 0, // or another default id
+                  pizzaName: '',
+                  description: '',
+                  price: 0.0,
+                  imageUrl: '',
+                ),
+                isNew: true,
+              ),
             ),
           );
         },
